@@ -172,7 +172,54 @@ end_printBoard:
 # Uses global variables: board (char[]), board_width (int), board_height (int)
 
 place_tile:
+	# Load the global variables
+	la $t0, board_width				# Load Address; Load address of board_width
+	lw $t1, 0($t0)					# Load Word; Load value of board_width into $t1
+	
+	la $t0, board_height			# Load Address; Load address of board_height
+	lw $t2, 0($t0)					# Load Word; Load value of board_height into $t1
+	
+	# Check if the given row and/or column is out of bounds
+	bge $a0, $t2, out_of_bounds    	# Branch if Greater/Equals; If row >= board_height, return an out_of_bounds value
+	blt $a0, $0, out_of_bounds      # Branch if Less Than; If row < 0, return an out_of_bounds value
+	
+	bge $a1, $t1, out_of_bounds    	# Branch if Greater/Equals; If col >= board_width, return an out_of_bounds value
+	blt $a1, $0, out_of_bounds 		# Branch if Less Than; If col < 0, return an out_of_bounds value
+	
+	# Calculate the index of the space specified by row,col: index = (row * board_width) + col
+	mul $t3, $a0, $t0				# $t3 = (row * board_width)
+	add $t3, $t3, $a1				# $t3 = (row * board_width) + col
+	
+	# Calculate the address of the space specified by row,col; Store the value of that space
+	la $t4, board					# Load Address; Load address of board
+	add $t4, $t4, $t3				# Calculate the correct address of the space
+	lb $t5, 0($t4)					# Load Byte; Load the byte (char) from the board into #$t5
+	
+	# Check if the space indicated by row,col is occupied
+	bnez $t5, occupied				# Branch if Not Equal Zero; If $t5 != 0, return an occupied value
+	
+	# If the space is not out of bounds or occupied, set the value of the space
+	sb $a2, 0($t4)					# Store Byte; Store the value in $a2 into the address in $t4
+	
+	# Load the return value, 0
+	li $v0, 0
+	
+	# Return from 'place_tile'
     jr $ra
+
+out_of_bounds:
+	# Load the return value, 2
+	li $v0, 2
+	
+	# Return from 'out_of_bounds'/'place_tile'
+	jr $ra
+	
+occupied:
+	# Load the return value, 1
+	li $v0, 1
+	
+	# Return from 'occupied'/'place_tile'
+	jr $ra	
 
 # Function: test_fit
 # Arguments: 
