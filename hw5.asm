@@ -53,11 +53,74 @@ piece_done:
 # Uses global variables: board (char[]), board_width (int), board_height (int)
 
 printBoard:
-    # Function prologue
+	# Load the global variables
+	la $t0, board_width			            # Load Address; Load address of board_width
+	lw $t1, 0($t0)				            # Load Word; Load value of board_width into $t1
+	
+	la $t0, board_height		            # Load Address; Load address of board_height
+	lw $t2, 0($t0)				            # Load Word; Load value of board_height into $t1
+	
+	# Initialize row_index to 0 (row_index will loop through the rows of the board)
+	li $t3, 0                   			# Load Immediate; Load 0 into $t3 to set row_index = 0
+	
+row_loop:
+	# Check if we iterated through all the rows
+	bge $t3, $t2, end_printBoard 	        # If row_index >= board_height, end row_loop
+	
+	# Initialize col_index to 0 (col_index will loop through the columns of the board)
+	li $t4, 0					            # Load Immediate; Load 0 into $t4 to set col_index = 0
+	
+col_loop:
+	# Check if we iterated through all the columns
+	bge $t4, $t1, next_row		            # If col_index >= board_width, continue to the next row_index
+	
+	# Calculate the index of the current element: index = (row * board_width) + col
+	mul $t5, $t3, $t1			            # $t5 = (row * board_width)
+	add $t5, $t5, $t4			            # $t5 = (row * board_width) + col
+	
+	# Load the char from the array at board[index]
+	la $t6, board				            # Load Address; Load the base address of board
+	add $t6, $t6, $t5			            # Calculate the correct address of the index
+	lb $t7, 0($t6)				            # Load Byte; Load the byte (char) from the board into $t7
+	
+	# Print the ASCII value of the char
+	li $v0, 1					            # Load Immediate; Load the code for print_integer
+	move $a0, $t7				            # Move; Move the char from $t7 to $a0
+	syscall					                # Syscall; print_integer
+	
+	# Print a space after the ASCII value
+	li $v0, 4					            # Load Immediate; Load the code for print_string
+	la $a0, space				            # Load Address; Load the address of the space character
+	syscall					                # Syscall; print_string(space)
+	
+	# Increment col_index
+	addi $t4, $t4 1				            # Add Immediate; col_index = col_index + 1
+	
+	# Return to the start of col_loop
+	j col_loop
+	
+next_row:
+	# Print a new line before starting the next row
+	li $v0, 4					            # Load Immediate; Load the code for print_string
+	la $a0, newline				            # Load Address; Load the address of the newline character
+	syscall					                # Syscall; print_string(newline)
+	
+	# Increment row_index
+	addi $t3, $t3, 1				        # Add Immediate; row_index = row_index + 1
+	
+	# Continue to the start of row_loop
+	j row_loop
 
-    # Function epilogue
-    
-    jr $ra                # Return
+end_printBoard:
+	# Print an extra newline at the end
+	li $v0, 4					            # Load Immediate; Load the code for print_string
+	la $a0, newline				            # Load Address; Load the address of the newline character
+	syscall					                # Syscall; print_string(newline)
+	
+   	# Return from `printBoard`
+   	# Return to the next instruction in `main`
+    jr $ra					                # Jump Register; Jump to the register stored in $ra
+
 
 # Function: place_tile
 # Arguments: 
