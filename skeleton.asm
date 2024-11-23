@@ -536,6 +536,36 @@ T_orientation3:
     or $s2, $s2, $v0
     j piece_done
 
+T_orientation4:
+	move $a0, $s5		    # row
+	move $a1, $s6		    # col
+	jal place_tile
+	or $s2, $s2, $v0
+	
+	move $a0, $s5
+	addi $a0, $a0, 1	    # row + 1
+	move $a1, $s6		    # col
+	move $a2, $s1
+	jal place_tile
+	or $s2, $s2, $v0
+	
+	move $a0, $s5	
+	addi $a0, $a0, 2	    # row + 2
+	move $a1, $s6		    # col
+	move $a2, $s1		
+	jal place_tile
+	or $s2, $s2, $v0
+	
+	move $a0, $s5	
+	addi $a0, $a0, 1	    # row + 1
+	move $a1, $s6	
+	addi $a1, $a1, 1	    # col + 1
+	move $a2, $s1
+	jal place_tile
+	or $s2, $s2, $v0
+	j piece_done
+
+
 piece_reverse_z:
     li $t0, 1
     beq $s4, $t0, reverse_z_flat
