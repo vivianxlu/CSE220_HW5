@@ -41,7 +41,7 @@ col_loop_zeroOut:
 	add $t6, $t6, $t5				# Calculate the correct address of the index
 	
 	# Set the char from the array at board[index] to 0
-	sw $0, 0($t6)					# Store Word; Store the value in $0 (0) into the address in $t6
+	sb $0, 0($t6)					# Store Word; Store the value in $0 (0) into the address in $t6
 	
 	# Increment col_index
 	addi $t4, $t4, 1
