@@ -187,7 +187,7 @@ place_tile:
 	blt $a1, $0, out_of_bounds 		# Branch if Less Than; If col < 0, return an out_of_bounds value
 	
 	# Calculate the index of the space specified by row,col: index = (row * board_width) + col
-	mul $t3, $a0, $t0				# $t3 = (row * board_width)
+	mul $t3, $a0, $t1				# $t3 = (row * board_width)
 	add $t3, $t3, $a1				# $t3 = (row * board_width) + col
 	
 	# Calculate the address of the space specified by row,col; Store the value of that space
