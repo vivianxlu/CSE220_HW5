@@ -1,5 +1,6 @@
 .data
 space: .asciiz " "    # Space character for printing between numbers
+.align 2
 newline: .asciiz "\n" # Newline character
 extra_newline: .asciiz "\n\n" # Extra newline at end
 
