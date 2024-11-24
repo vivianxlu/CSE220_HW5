@@ -73,11 +73,6 @@ placePieceOnBoard:
 	lw $s4, 4($a0)					# $s4 = piece_orientation
 	lw $s5, 8($a0)					# $s5 = row_location
    	lw $s6, 12($a0) 				# $s6 = col_location
-   	
-	# Load values for argument registers, to use for `place_tile`
-   	lw $a2, 0($a1)					# $a2 = ship_num	 (argument for place_tile)
-	lw $a1, 0($s5)					# $a1 = row_location (argument for place_tile)
-	lw $a0, 0($s6)					# $a0 = col_location (argument for place_tile)
     
 	# First switch on type
 	li $t0, 1
