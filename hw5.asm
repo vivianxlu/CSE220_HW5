@@ -65,28 +65,62 @@ end_zeroOut:
 #   $a0 - address of piece struct
 #   $a1 - ship_num
 placePieceOnBoard:
-    # Function prologue
 
-    # Load piece fields
-    # First switch on type
-    li $t0, 1
-    beq $s3, $t0, piece_square
-    li $t0, 2
-    beq $s3, $t0, piece_line
-    li $t0, 3
-    beq $s3, $t0, piece_reverse_z
-    li $t0, 4
-    beq $s3, $t0, piece_L
-    li $t0, 5
-    beq $s3, $t0, piece_z
-    li $t0, 6
-    beq $s3, $t0, piece_reverse_L
-    li $t0, 7
-    beq $s3, $t0, piece_T
-    j piece_done       # Invalid type
+    # Load piece fields (Each field is an integer (4 bytes), so the offsets will be multiples of 4)
+    lw $s3, 0($a0)						# $s3 = piece_type 
+    lw $s4, 4($a0)						# $s4 = piece_orientation
+    lw $s5, 8($a0)						# $s5 = row_location
+   	lw $s6, 12($a0) 					# $s6 = col_location
+    
+	# First switch on type
+	li $t0, 1
+   	beq $s3, $t0, piece_square
+	li $t0, 2
+	beq $s3, $t0, piece_line
+	li $t0, 3
+	beq $s3, $t0, piece_reverse_z
+	li $t0, 4
+	beq $s3, $t0, piece_L
+   	li $t0, 5
+	beq $s3, $t0, piece_z
+	li $t0, 6
+	beq $s3, $t0, piece_reverse_L
+	li $t0, 7
+	beq $s3, $t0, piece_T
+
+	# Check $s2, the accumulated error value
+	bnez $s2, invalid_piece_placement	# Branch Not Equal Zero; If $s2 != 0, then there is an error
+
+	j piece_done 					# If $s2 == 0, go to 	piece_done'
+
+invalid_piece_placement:
+	# Clear the board first
+	jal zeroOut							# Jump and Link; Execute zeroOut, Return back here
+	
+	# Check if $s2 is equal to 1, 2, or 3
+	li $t7, 1							# Load Immediate; Set $t7 = 1
+	beq $s2, $t7, out_of_bounds_error	# Branch if Equals; If $s2 == 1 ($t7),  go to `out_of_bounds_error`
+	li $t7, 2							# Load Immediate; Set $t7 = 2
+	beq $s2, $t7, occupied_error		# Branch if Equals; If #$s2 == 2 ($t7), go to `occupied_error`
+	li $t7, 3							# Load Immediate; Set $t7 = 3
+	beq $s2, $t7, both_error			# Branch if Equals; If #$s2 == 3 ($t7), go to `both_error`
+
+out_of_bounds_error:
+	li $v0, 1							# Load Immediate; Load the return value, 1
+	jr $ra
+
+occupied_error:
+	li $v0, 2							# Load Immediate; Load the return value, 2
+	jr $ra
+	
+both_error:
+	li $v0, 3							# Load Immediate; Load the return value, 3
+	jr $ra
 
 piece_done:
+	li $v0, 0							# Load Immediate; Load the return value, 0
     jr $ra
+
 # Function: printBoard
 # Arguments: None (uses global variables)
 # Returns: void
@@ -230,7 +264,32 @@ test_fit:
 
 
 T_orientation4:
-    # Study the other T orientations in skeleton.asm to understand how to write this label/subroutine
-    j piece_done
+	move $a0, $s5		    # row
+	move $a1, $s6		    # col
+	jal place_tile
+	or $s2, $s2, $v0
+	
+	move $a0, $s5
+	addi $a0, $a0, 1	    # row + 1
+	move $a1, $s6		    # col
+	move $a2, $s1
+	jal place_tile
+	or $s2, $s2, $v0
+	
+	move $a0, $s5	
+	addi $a0, $a0, 2	    # row + 2
+	move $a1, $s6		    # col
+	move $a2, $s1		
+	jal place_tile
+	or $s2, $s2, $v0
+	
+	move $a0, $s5	
+	addi $a0, $a0, 1	    # row + 1
+	move $a1, $s6	
+	addi $a1, $a1, 1	    # col + 1
+	move $a2, $s1
+	jal place_tile
+	or $s2, $s2, $v0
+	j piece_done
 
 .include "skeleton.asm"
