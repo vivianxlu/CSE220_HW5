@@ -66,13 +66,18 @@ end_zeroOut:
 #   $a1 - ship_num
 placePieceOnBoard:
 
+	# Load ship_num into $s1
+	lw $s1, 0($a1)
 	# Load piece fields (Each field is an integer (4 bytes), so the offsets will be multiples of 4)
 	lw $s3, 0($a0)					# $s3 = piece_type 
 	lw $s4, 4($a0)					# $s4 = piece_orientation
 	lw $s5, 8($a0)					# $s5 = row_location
    	lw $s6, 12($a0) 				# $s6 = col_location
    	
-   	lw $a2, 0($a1)					# $a2 = ship_num
+	# Load values for argument registers, to use for `place_tile`
+   	lw $a2, 0($a1)					# $a2 = ship_num	 (argument for place_tile)
+	lw $a1, 0($s5)					# $a1 = row_location (argument for place_tile)
+	lw $a0, 0($s6)					# $a0 = col_location (argument for place_tile)
     
 	# First switch on type
 	li $t0, 1
