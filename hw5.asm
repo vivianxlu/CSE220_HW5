@@ -66,20 +66,31 @@ end_zeroOut:
 #   $a0 - address of piece struct
 #   $a1 - ship_num
 placePieceOnBoard:
-
+	
+	addi $sp, $sp, -24
 	# Load ship_num into $s1
-	lw $s1, 0($a1)
+	sw $s1, 0($sp)
+	move $s1, $a1
 	# Load piece fields (Each field is an integer (4 bytes), so the offsets will be multiples of 4)
+	sw $s3, 4($sp)
 	lw $s3, 0($a0)					# $s3 = piece_type 
+	sw $s4, 8($sp)
 	lw $s4, 4($a0)					# $s4 = piece_orientation
+	sw $s5, 12($sp)
 	lw $s5, 8($a0)					# $s5 = row_location
+	sw $s6, 16($sp)
    	lw $s6, 12($a0) 				# $s6 = col_location
-    
+   	
+	#jal printBoard
+	
+	sw $ra, 20($sp)
+	
 	# First switch on type
 	li $t0, 1
    	beq $s3, $t0, piece_square
 	li $t0, 2
 	beq $s3, $t0, piece_line
+	jal printBoard
 	li $t0, 3
 	beq $s3, $t0, piece_reverse_z
 	li $t0, 4
@@ -110,18 +121,41 @@ invalid_piece_placement:
 
 out_of_bounds_error:
 	li $v0, 1						# Load Immediate; Load the return value, 1
+	lw $s1, 0($sp)
+	lw $s3, 4($sp)
+	lw $s4, 8($sp)
+	lw $s5, 12($sp)
+	lw $s6, 16($sp)
+	lw $ra, 20($sp)
 	jr $ra
 
 occupied_error:
 	li $v0, 2						# Load Immediate; Load the return value, 2
+	lw $s1, 0($sp)
+	lw $s3, 4($sp)
+	lw $s4, 8($sp)
+	lw $s5, 12($sp)
+	lw $s6, 16($sp)
+	lw $ra, 20($sp)
 	jr $ra
 	
 both_error:
 	li $v0, 3						# Load Immediate; Load the return value, 3
+	lw $s1, 0($sp)
+	lw $s3, 4($sp)
+	lw $s4, 8($sp)
+	lw $s5, 12($sp)
+	lw $s6, 16($sp)
+	lw $ra, 20($sp)
 	jr $ra
 
 piece_done:
-	li $v0, 0						# Load Immediate; Load the return value, 0
+	li $v0, 0						# Load Immediate; Load the return value, 0lw $s1, 0($sp)
+	lw $s3, 4($sp)
+	lw $s4, 8($sp)
+	lw $s5, 12($sp)
+	lw $s6, 16($sp)
+	lw $ra, 20($sp)
     jr $ra
 
 # Function: printBoard
