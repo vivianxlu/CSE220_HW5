@@ -80,8 +80,6 @@ placePieceOnBoard:
 	lw $s5, 8($a0)					# $s5 = row_location
 	sw $s6, 16($sp)
    	lw $s6, 12($a0) 				# $s6 = col_location
-   	
-	#jal printBoard
 	
 	sw $ra, 20($sp)
 	
@@ -90,7 +88,6 @@ placePieceOnBoard:
    	beq $s3, $t0, piece_square
 	li $t0, 2
 	beq $s3, $t0, piece_line
-	jal printBoard
 	li $t0, 3
 	beq $s3, $t0, piece_reverse_z
 	li $t0, 4
