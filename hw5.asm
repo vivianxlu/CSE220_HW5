@@ -15,13 +15,13 @@ extra_newline: .asciiz "\n\n" # Extra newline at end
 # Arguments: None
 # Returns: void
 zeroOut:
-   	la $t0, board_width				# Load Address; Load address of board_width
-    lw $t1, 0($t0)					# Load Word; Load value of board_width into $t1
+   	la $t0, board_width			# Load Address; Load address of board_width
+    	lw $t1, 0($t0)					# Load Word; Load value of board_width into $t1
     	
-    la $t0, board_height			# Load Address; Load address of board_height
-    lw $t2, 0($t0)					# Load Word; Load value of board_height into $t2
+    	la $t0, board_height			# Load Address; Load address of board_height
+    	lw $t2, 0($t0)					# Load Word; Load value of board_height into $t2
     
-    li $t3, 0						# Load Immediate; Load 0 into $t3 to set row_index = 0
+    	li $t3, 0						# Load Immediate; Load 0 into $t3 to set row_index = 0
   
 row_loop_zeroOut:
 	# Check if we iterated through all the rows
@@ -67,21 +67,27 @@ end_zeroOut:
 #   $a1 - ship_num
 placePieceOnBoard:
 	
-	addi $sp, $sp, -24
+	addi $sp, $sp, -28                            # Allocate memory on the stack
+	
 	# Load ship_num into $s1
 	sw $s1, 0($sp)
 	move $s1, $a1
+	
+	# Set the value of $s2 to 0
+	sw $s2, 4($sp)
+	move $s2, $0
+	
 	# Load piece fields (Each field is an integer (4 bytes), so the offsets will be multiples of 4)
-	sw $s3, 4($sp)
+	sw $s3, 8($sp)
 	lw $s3, 0($a0)					# $s3 = piece_type 
-	sw $s4, 8($sp)
+	sw $s4, 12($sp)
 	lw $s4, 4($a0)					# $s4 = piece_orientation
-	sw $s5, 12($sp)
+	sw $s5, 16($sp)
 	lw $s5, 8($a0)					# $s5 = row_location
-	sw $s6, 16($sp)
+	sw $s6, 20($sp)
    	lw $s6, 12($a0) 				# $s6 = col_location
 	
-	sw $ra, 20($sp)
+	sw $ra, 24($sp)
 	
 	# First switch on type
 	li $t0, 1
@@ -98,11 +104,23 @@ placePieceOnBoard:
 	beq $s3, $t0, piece_reverse_L
 	li $t0, 7
 	beq $s3, $t0, piece_T
+	
+	j piece_done 					# If $s2 == 0, go to 	piece_done'
 
+piece_done:
 	# Check $s2, the accumulated error value
 	bnez $s2, invalid_piece_placement	# Branch Not Equal Zero; If $s2 != 0, then there is an error
-
-	j piece_done 					# If $s2 == 0, go to 	piece_done'
+	
+	li $v0, 0						# Load Immediate; Load the return value, 0lw $s1, 0($sp)
+	lw $s1, 0($sp)
+	lw $s2, 4($sp)
+	lw $s3, 8($sp)
+	lw $s4, 12($sp)
+	lw $s5, 16($sp)
+	lw $s6, 20($sp)
+	lw $ra, 24($sp)
+	addi $sp, $sp, 28
+    	jr $ra
 
 invalid_piece_placement:
 	# Clear the board first
@@ -119,41 +137,38 @@ invalid_piece_placement:
 out_of_bounds_error:
 	li $v0, 1						# Load Immediate; Load the return value, 1
 	lw $s1, 0($sp)
-	lw $s3, 4($sp)
-	lw $s4, 8($sp)
-	lw $s5, 12($sp)
-	lw $s6, 16($sp)
-	lw $ra, 20($sp)
+	lw $s2, 4($sp)
+	lw $s3, 8($sp)
+	lw $s4, 12($sp)
+	lw $s5, 16($sp)
+	lw $s6, 20($sp)
+	lw $ra, 24($sp)
+	addi $sp, $sp, 28
 	jr $ra
 
 occupied_error:
 	li $v0, 2						# Load Immediate; Load the return value, 2
 	lw $s1, 0($sp)
-	lw $s3, 4($sp)
-	lw $s4, 8($sp)
-	lw $s5, 12($sp)
-	lw $s6, 16($sp)
-	lw $ra, 20($sp)
+	lw $s2, 4($sp)
+	lw $s3, 8($sp)
+	lw $s4, 12($sp)
+	lw $s5, 16($sp)
+	lw $s6, 20($sp)
+	lw $ra, 24($sp)
+	addi $sp, $sp, 28
 	jr $ra
 	
 both_error:
 	li $v0, 3						# Load Immediate; Load the return value, 3
 	lw $s1, 0($sp)
-	lw $s3, 4($sp)
-	lw $s4, 8($sp)
-	lw $s5, 12($sp)
-	lw $s6, 16($sp)
-	lw $ra, 20($sp)
+	lw $s2, 4($sp)
+	lw $s3, 8($sp)
+	lw $s4, 12($sp)
+	lw $s5, 16($sp)
+	lw $s6, 20($sp)
+	lw $ra, 24($sp)
+	addi $sp, $sp, 28
 	jr $ra
-
-piece_done:
-	li $v0, 0						# Load Immediate; Load the return value, 0lw $s1, 0($sp)
-	lw $s3, 4($sp)
-	lw $s4, 8($sp)
-	lw $s5, 12($sp)
-	lw $s6, 16($sp)
-	lw $ra, 20($sp)
-    jr $ra
 
 # Function: printBoard
 # Arguments: None (uses global variables)
