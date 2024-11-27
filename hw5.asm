@@ -242,7 +242,7 @@ end_printBoard:
 	
    	# Return from `printBoard`
    	# Return to the next instruction in `main`
-    jr $ra					# Jump Register; Jump to the register stored in $ra
+    	jr $ra					# Jump Register; Jump to the register stored in $ra
 
 
 # Function: place_tile
@@ -308,8 +308,85 @@ occupied:
 # Arguments: 
 #   $a0 - address of piece array (5 pieces)
 test_fit:
-    # Function prologue
-    jr $ra
+	# Store the saved registers (and return address) into the stack
+	addi $sp, $sp, -8					# Allocate memory in the stack
+	sw $s0, 0($sp)
+	sw $ra, 4($sp)
+
+    	# Load the address of the (pieces)array
+    	#move $t1, $a0						# Move; Move the address contained in $a0 to $t1
+    	move $s0, $a0						# Move; Move the address contained in $a0 to $s1
+    	
+    	
+    	li $t9, 0							# Load Immediate; Initialize $t9 = 0 ... Index to loop through the pieces of the array
+    	j pieces_loop
+
+pieces_loop:
+	li $t2, 5							# Load Immediate; Initialize $t2 = 5 ... Number of pieces in the array
+	bge $t9, $t2, finish_pieces_loop		# Branch Greater Equal; If $t9 >= $t2, then end the loop
+	
+	# Load the values for the current ship
+	sll $t4, $t9, 4						# Shift Left Logical; Shift the value in $t9 to the left 4 times, Store in $t4
+									# A.k.a. Multiply the index by 4
+	# add $t5, $t1, $t4					# Calculate the address of the current piece; Add the multiple(of 4) to the starting address of the array
+	add $t5, $s0, $t4
+	
+	lw $t6, 0($t5)						# Load Word, Load the piece type into $t6
+	# Check if the type is within bounds (1-7)
+	li $t7, 1							# Load Immediate; Load the smallest type (1) into $t7
+	li $t8, 7							# Load Immediate; Load the largest type (7) into $t8
+	blt $t6, $t7, type_orientation_error		# Branch Less Than; If $t6 (type) < $7 (1), branch to error
+	bgt $t6, $t8, type_orientation_error		# Branch Greater Than; If $t6 (type) > $t8 (7), branch to error	
+	
+	lw $t6, 4($t5)						# Load Word; Load the piece orientation into $t6
+	# Check if the orientation is within bounds (1-4)
+	li $t7, 1							# Load Immediate; Load the smallest orientation (1) into $t7
+	li $t8, 4							# Load Immedate; Load the largest orientation (4) into $t8
+	blt $t6, $t7,  type_orientation_error		# Branch Less Than; If $t6 (orientation) < $t7 (1), branch to error
+	bgt $t6, $t8, type_orientation_error		# Branch Greater Than; If $t6 (orientation) > $t8 (4), branch to error
+	
+	# If no error was found:
+	addi $t9, $t9, 1						# Increment the index
+	j pieces_loop						# Jump; Go back to the start of the loop
+
+type_orientation_error:
+	li $v0, 4							# Load Immediate; Load the error code
+	lw $s0, 0($sp)
+	lw $ra, 4($sp)
+	addi $sp, $sp, 8				# Remove memroy from the stack
+	jr $ra							# Jump to #ra
+
+finish_pieces_loop:
+	li $t9, 0							# Reset $t9, our index, to place ships
+	j place_pieces_loop
+	
+place_pieces_loop:
+	li $t2, 5							# Load Immediate; Initialize $t2 = 0 (Every time we call this function, we need to set it again)
+	
+	bge $t9, $t2, finish_place_pieces_loop
+	
+    	sll $t4, $t9, 4						# Shift Left Logical; Shift the value in $t3 to the left 4 times, Store in $t4
+									# A.k.a. Multiply the index by 4
+	# add $t5, $t1, $t4					# Calculate the address of the current piece; Add the multiple(of 4) to the starting address of the array
+	add $t5, $s0, $t4
+    	
+    	move $a0, $t5						# Move; Move the address of the piece from $t5 to $a0
+    									# $a0 now stores the address of the piece struct
+    	
+    	addi $a1, $t9, 1					# Add Immediate; Take the value of the index ($t3) and add 1, Store into $a1
+    									# $a1 now stores the ship_num
+   
+    	jal placePieceOnBoard				# Place the current  piece onto the board
+    	
+    	addi $t9, $t9, 1						# Add Immediate; Increment the index (After the piece has been placed)
+    	j place_pieces_loop					# Jump to the top of the loop, Place the next piece
+ 	
+ 
+ finish_place_pieces_loop:
+ 	lw $s0, 0($sp)
+    	lw $ra, 4($sp)
+	addi $sp, $sp, 8				# Remove memory from the stack
+	jr $ra							# Jump to #ra
 
 
 T_orientation4:
